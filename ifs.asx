@@ -1,214 +1,187 @@
-	opt	h-
-	dta	a($801)
-	org	$801
-	opt	f+
-	dta	a($80b,$f),$9e,c'2059',0,$a0,0
+; Iterated Function System
 
-Screen_colors   equ	$0400	$3e8
-Screen_screen   equ	$2000	$1f40
-Screen_lineLo   equ	$4000
-Screen_lineHi   equ	$4100
-Screen_mask     equ	$4200
-Ifs_branchTable equ	$4300
-Ifs_mulLookups  equ	$5000	$1400
+screen	equ	$6000	$1800
+mask	equ	$7800
+col	equ	$7900
+lineLo	equ	$7a00
+lineHi	equ	$7b00
+mulLookups	equ	$7c00	$1400
+branchTable	equ	$9000
 
-Screen_ptr        equ	$80	2
-Ifs_ptr           equ	$82	2
-Ifs_currentBranch equ	$84
-Ifs_pLimit        equ	$85
-Ifs_y             equ	$86
-Ifs_defIndex      equ	$87
-Ifs_step          equ	$88	2
-Ifs_signs         equ	$8a
-memset_limit      equ	$8b
+ptr	equ	$80	2
+y	equ	$82
+defsIndex	equ	$83
+step	equ	$84	2
+signs	equ	$86
+currentBranch	equ	$87
+pLimit	equ	$88
 
+	org	$9100
+dl	dta	$70,$70,$70,$4f,a(screen)
+:127	dta	$0f
+	dta	$4f,a(screen+$1000)
+:63	dta	$0f
+	dta	$41,a(dl)
+
+cls
+	lda:tay	#0
+	ldx	>screen
+cls_1
+	stx	cls_2+2
+cls_2
+	sta:rne	screen,y+
+	inx:cpx	>screen+$1800
+	bcc	cls_1
+	rts
+
+init2MulLookups
+	ldy	defs,x
 	lda	#0
-;	jsr	$1000
-	sei
-	mva	#$35	1
-	mvx	#$7f	$dc0d
-	ldx	$dc0d
-	mvx	#0	$dc0e
-	inx:stx	$d01a
-	stx	$d012
-;	mwa	#irq	$fffe
+	jsr	initMulLookup
+	ldy	defs,x+
+	lda	defs,x
+initMulLookup
+	inx
+	stx	defsIndex
+	sty	step
+	ldy	#0
+	lsr	signs
+	scc:dey
+	sty	step+1
+	sta	(ptr),0
+	ldx	#0
+initMulLookup_1
+	txa
+	adc	step
+	tax
+	lda	step+1
+	adc	(ptr),y+
+	sta	(ptr),y
+	bne	initMulLookup_1
+	inc	ptr+1
+	ldx	defsIndex
+	rts
 
-	mwa	#$ffff	$d40e ; high frequency random
-	mva	#$80	$d412 ; enable random
-
+main
+	sei:inc	^4e
+	jsr	cls
 	ldx	#0
 	lda	#$80
-Screen_initMask
-	sta	Screen_mask,x
-	lsr	@
-	scc:ror	@
-	inx
-	bne	Screen_initMask
-
-	lda	<Screen_screen+4*8
-	ldx	>Screen_screen+4*8
 	ldy	#0
-Screen_initLine1
-	sta	Screen_lineLo,y
-	txa:sta	Screen_lineHi,y
-	tya
-	and:cmp	#7
-	lda	Screen_lineLo,y
-	bcc	Screen_initLine2
-	adc	<311	+
-	scc:inx
-	inx
-Screen_initLine2
-	iny:cpy	#200
-	bcc	Screen_initLine1
-
-	mva	<Ifs_mulLookups	Ifs_ptr
-
-	lda:rne	$d012	; raster
-;	cli
-	mva	#$3b	$d011	; bitmap ($20), noblank ($10), 25 rows (8), yscroll (3)
-	mva	#$00	$d016	; 0*multicolor (0*$10), 38 col (0*8), xscroll(0)
-	mva	#$18	$d018	; colors at $400 ($10/$10 * $400), bitmap at $2000 (8 * $400)
- 	mva	#0	$d020	; border color
-
-	lda	#$50
-	ldx	>Screen_colors
-	ldy	>Screen_colors+$400
-	jsr	memset
-	lda	#0
-	ldx	>Screen_screen
-	ldy	>Screen_screen+$2000
-	jsr	memset
-
-	ldx	#0
-
-	mva	>Ifs_mulLookups	Ifs_ptr+1
-	mva	#Ifs_0-Ifs_branch	Ifs_currentBranch
-	ldy	#0
-
-Ifs_trans
-; odczytaj limit p-twa
-	mva	Ifs_def,x+	Ifs_pLimit
-; zapisz odgalezienia
-	lda	Ifs_currentBranch
-Ifs_fillBranchTable
-	sta	Ifs_branchTable,y+
-	cpy	Ifs_pLimit
-	bne	Ifs_fillBranchTable
-	sbc	#Ifs_0-Ifs_1	+
-	sta	Ifs_currentBranch
-; przygotuj tabele mnozenia
-	mva	Ifs_def,x+	Ifs_signs
-	jsr	Ifs_init2MulLookups
-	jsr	Ifs_init2MulLookups
-	ldy	Ifs_pLimit
-	bne	Ifs_trans
-
-	lda	Ifs_def,x+
-	mvy	Ifs_def,x+	Ifs_y
-	jmp	Ifs_set
-
-	jmp	*
-
-Ifs_4
-	lda	Ifs_mulLookups+$1200,x
-	adc	Ifs_mulLookups+$1300,y
-	sta	Ifs_y
-	clc
-	lda	Ifs_mulLookups+$1000,x
-	adc	Ifs_mulLookups+$1100,y
-	jmp	Ifs_set
-Ifs_3
-	lda	Ifs_mulLookups+$e00,x
-	adc	Ifs_mulLookups+$f00,y
-	sta	Ifs_y
-	clc
-	lda	Ifs_mulLookups+$c00,x
-	adc	Ifs_mulLookups+$d00,y
-	jmp	Ifs_set
-Ifs_2
-	lda	Ifs_mulLookups+$a00,x
-	adc	Ifs_mulLookups+$b00,y
-	sta	Ifs_y
-	clc
-	lda	Ifs_mulLookups+$800,x
-	adc	Ifs_mulLookups+$900,y
-	jmp	Ifs_set
-Ifs_1
-	lda	Ifs_mulLookups+$600,x
-	adc	Ifs_mulLookups+$700,y
-	sta	Ifs_y
-	clc
-	lda	Ifs_mulLookups+$400,x
-	adc	Ifs_mulLookups+$500,y
-	jmp	Ifs_set
-Ifs_0
-	lda	Ifs_mulLookups+$200,x
-	adc	Ifs_mulLookups+$300,y
-	sta	Ifs_y
-	clc
-	lda	Ifs_mulLookups,x
-	adc	Ifs_mulLookups+$100,y
-Ifs_set
-	ldy	$d41b	; random
-	ldx	Ifs_branchTable,y
-	stx	Ifs_branch-1
-	tax
-	ldy	Ifs_y
-	and	#~7
-	add	Screen_lineLo,y
-	sta	Screen_ptr
-	and	#0
-	adc	Screen_lineHi,y
-	sta	Screen_ptr+1
-	lda	Screen_mask,x
-	ora:sta	(Screen_ptr),y
-	bcc	*	! .
-Ifs_branch
-
-memset
-	sty	memset_limit
-	ldy	#0
-memset_1
-	stx	memset_sta+2
-memset_sta
-	sta:rne	a:0,y+
-	inx
-	cpx	memset_limit
-	bcc	memset_1
-	rts
-
-Ifs_init2MulLookups
-	ldy	Ifs_def,x
-	lda	#0
-	jsr	Ifs_initMulLookup
-	ldy	Ifs_def,x+
-	lda	Ifs_def,x
-Ifs_initMulLookup
-	inx
-	stx	Ifs_defIndex
-	sty	Ifs_step
-	ldy	#0
-	lsr	Ifs_signs
-	scc:dey
-	sty	Ifs_step+1
-	sta	(Ifs_ptr),0
-	ldx	#0
-Ifs_initMulLookup1
+init_1
+	sta	mask,x
+	tya:sta	col,x
+	add	>screen
+	sta	lineHi,x
 	txa
-	adc	Ifs_step
-	tax
-	lda	Ifs_step+1
-	adc	(Ifs_ptr),y+
-	sta	(Ifs_ptr),y
-	bne	Ifs_initMulLookup1
-	inc	Ifs_ptr+1
-	ldx	Ifs_defIndex
-	rts
+:5	asl	@
+	sta	lineLo,x
+	lda	mask,x
+	lsr	@
+	bcc	init_2
+	ror	@
+	iny
+init_2
+	inx
+	bne	init_1
+	
+	lda:rne	^4b
+	ldx	#29
+	sta:rpl	^00,x-
+	sta	ptr
+	sta	defsIndex
+	mva	#$21	^40
+	mwa	#dl	^42
+	mva	#$fe	^31
+	mwa	#next	$fffe
+next
+	mva	#0	^2e
+	mva	#$40	^2e
+	cli
 
-Ifs_def
+new
+	jsr	cls
+	ldx	defsIndex
+	lda	defs,x
+	sne:ldx	#0
+	lda:rne	^4b
+	mva	defs,x+	^1a
+	sta	^18
+	mva	defs,x+	^17
+	mva	>mulLookups	ptr+1
+	mva	#case_0-branch	currentBranch
+	ldy	#0
+new_1
+	mva	defs,x+	pLimit
+	lda	currentBranch
+new_2
+	sta	branchTable,y+
+	cpy	pLimit
+	bne	new_2
+	sbc	#case_0-case_1	+
+	sta	currentBranch
+	mva	defs,x+	signs
+	jsr	init2MulLookups
+	jsr	init2MulLookups
+	ldy	pLimit
+	bne	new_1
+	lda	defs,x+
+	mvy	defs,x+	y
+	stx	defsIndex
+	jmp	set
+
+case_4
+	lda	mulLookups+$1200,x
+	adc	mulLookups+$1300,y
+	sta	y
+	lda	mulLookups+$1000,x
+	add	mulLookups+$1100,y
+	jmp	set
+case_3
+	lda	mulLookups+$e00,x
+	adc	mulLookups+$f00,y
+	sta	y
+	lda	mulLookups+$c00,x
+	add	mulLookups+$d00,y
+	jmp	set
+case_2
+	lda	mulLookups+$a00,x
+	adc	mulLookups+$b00,y
+	sta	y
+	lda	mulLookups+$800,x
+	add	mulLookups+$900,y
+	jmp	set
+case_1
+	lda	mulLookups+$600,x
+	adc	mulLookups+$700,y
+	sta	y
+	lda	mulLookups+$400,x
+	add	mulLookups+$500,y
+	jmp	set
+case_0
+	lda	mulLookups+$200,x
+	adc	mulLookups+$300,y
+	sta	y
+	lda	mulLookups,x
+	add	mulLookups+$100,y
+set
+	tax
+	ldy	^2a
+	mva	branchTable,y	branch-1
+	ldy	y
+	mva	lineHi,y	ptr+1
+	lda	lineLo,y
+	eor	col,x
+	tay
+	lda	mask,x
+	ora:sta	(ptr),y
+	ldy	y
+	clc:bcc	*
+branch
+
+defs
 ; paprotka Barnsleya
- ift 0
+	dta	$b2,$0c
 	dta	186,%0010	; p, znaki %dcba
 	dta	217,-9-1,37	; a,b,e
 	dta	9,217,-5-1	; c,d,f
@@ -217,22 +190,22 @@ Ifs_def
 	dta	-57-1,50,129
 	dta	186+33+28,%1110
 	dta	63,-70-1,85
-	dta	-64-1,-40-1,223
+	dta	-64-1,-40-1,215
 	dta	0,%0110
 	dta	14,-19-1,45
-	dta	-19-1,26,176
+	dta	-19-1,26,170
 	dta	114,47 ; x,y punktu stalego
- eli 0
 ; drzewo
+	dta	$e8,$04
 	dta	76,%0100
 	dta	49,124,14
-	dta	-88,113,63
+	dta	-88,110,61
 	dta	76+76,%0010
-	dta	118,-105,151
+	dta	118,-100,151
 	dta	64,92,-3
 	dta	76+76+12,%1101
 	dta	-14,17,140
-	dta	-115,-28,212
+	dta	-115,-28,210
 	dta	76+76+12+12,%1011
 	dta	-8,-17,143
 	dta	120,-5,85
@@ -240,8 +213,8 @@ Ifs_def
 	dta	-163,0,223
 	dta	0,128,44
 	dta	63,74
- eli 0
 ; krysztalek 4
+	dta	$72,$0a
 	dta	25,%0000
 	dta	65,0,100
 	dta	0,65,4
@@ -255,8 +228,8 @@ Ifs_def
 	dta	94,164,11
 	dta	-164,94,159
 	dta	135,6
- eli 1
 ; krysztalek 5
+	dta	$44,$0c
 	dta	51,%0000
 	dta	97,0,79
 	dta	0,97,3
@@ -273,5 +246,7 @@ Ifs_def
 	dta	97,0,118
 	dta	0,97,120
 	dta	129,5
- eif
-	end
+
+	dta	0
+
+	run	main

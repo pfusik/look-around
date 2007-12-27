@@ -1,5 +1,5 @@
-run: ifs.prg
+run: ifs.xex
 	cygstart $<
 
-%.prg: %.asx
-	xasm /q /p /o:$@ $<
+%.xex: %.asx
+	xasm -q -o $@ $<
