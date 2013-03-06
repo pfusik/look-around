@@ -1,5 +1,7 @@
 ; Iterated Function System
 
+TEST_OVERFLOW	equ	0
+
 screen	equ	$6000	$1800
 mask	equ	$7800
 col	equ	$7900
@@ -169,6 +171,11 @@ set
 	ldy	^2a
 	mva	branchTable,y	branch-1
 	ldy	y
+	ift	TEST_OVERFLOW
+	cpy #192
+	bcs error
+	eif
+ 
 	mva	lineHi,y	ptr+1
 	lda	lineLo,y
 	eor	col,x
@@ -178,46 +185,17 @@ set
 	ldy	y
 	clc:bcc	*
 branch
+	ift	TEST_OVERFLOW
+error
+	lsr:rne ^1a
+	eif
 
 defs
-; paprotka Barnsleya
-	dta	$b2,$0c
-	dta	186,%0010	; p, znaki %dcba
-	dta	217,-9-1,37	; a,b,e
-	dta	9,217,-5-1	; c,d,f
-	dta	186+33,%0100
-	dta	50,57,6
-	dta	-57-1,50,129
-	dta	186+33+28,%1110
-	dta	63,-70-1,85
-	dta	-64-1,-40-1,215
-	dta	0,%0110
-	dta	14,-19-1,45
-	dta	-19-1,26,170
-	dta	114,47 ; x,y punktu stalego
-; drzewo
-	dta	$e8,$04
-	dta	76,%0100
-	dta	49,124,14
-	dta	-88,110,61
-	dta	76+76,%0010
-	dta	118,-100,151
-	dta	64,92,-3
-	dta	76+76+12,%1101
-	dta	-14,17,140
-	dta	-115,-28,210
-	dta	76+76+12+12,%1011
-	dta	-8,-17,143
-	dta	120,-5,85
-	dta	0,%0001
-	dta	-163,0,223
-	dta	0,128,44
-	dta	63,74
-; krysztalek 4
+; crystal 4
 	dta	$72,$0a
 	dta	25,%0000
 	dta	65,0,100
-	dta	0,65,4
+	dta	0,65,3
 	dta	25+25,%0000
 	dta	65,0,30
 	dta	0,65,125
@@ -225,10 +203,10 @@ defs
 	dta	65,0,170
 	dta	0,65,125
 	dta	0,%0100
-	dta	94,164,11
-	dta	-164,94,159
+	dta	94,164,14
+	dta	-164-1,94,156
 	dta	135,6
-; krysztalek 5
+; Sierpinski Pentagon
 	dta	$44,$0c
 	dta	51,%0000
 	dta	97,0,79
@@ -241,11 +219,53 @@ defs
 	dta	0,97,48
 	dta	51+51+51+51,%0000
 	dta	97,0,41
-	dta	0,97,120
+	dta	0,97,119
 	dta	0,%0000
 	dta	97,0,118
-	dta	0,97,120
+	dta	0,97,119
 	dta	129,5
+; Barnsley Fern
+	dta	$b2,$0c
+	dta	186,%0010	; p, %dcba signs
+	dta	217,-9-1,40	; a,b,e
+	dta	9,217,-5-1	; c,d,f
+	dta	186+33,%0100
+	dta	50,57,6
+	dta	-57-1,50,129
+	dta	186+33+33,%1110
+	dta	63,-70-1,85
+	dta	-64-1,-40-1,215
+	dta	0,%0110
+	dta	14,-19-1,45
+	dta	-19-1,26,170
+	dta	114,47 ; invariant point x,y
+; Tree
+	dta	$e8,$04
+	dta	76,%0100
+	dta	49,124,14
+	dta	-88,110,61
+	dta	76+76,%0010
+	dta	118,-100,151
+	dta	64,92,-3
+	dta	76+76+12,%1101
+	dta	-14,17,140
+	dta	-115,-28,208
+	dta	76+76+12+12,%1011
+	dta	-8,-17,143
+	dta	120,-5,82
+	dta	0,%0001
+	dta	-163,0,223
+	dta	0,128,44
+	dta	63,74
+; Levy Dragon
+	dta	$24,$08
+	dta	128,%0010
+	dta	128,-128-1,64
+	dta	128,128,0
+	dta	0,%0100
+	dta	128,128,64
+	dta	-128-1,128,127
+	dta	128,188
 
 	dta	0
 
