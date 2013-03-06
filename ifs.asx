@@ -1,14 +1,14 @@
 ; Iterated Function System
 
 TEST_OVERFLOW	equ	0
+SCREEN_CHANNEL	equ	$60
 
-screen	equ	$6000	$1800
-mask	equ	$7800
-col	equ	$7900
-lineLo	equ	$7a00
-lineHi	equ	$7b00
-mulLookups	equ	$7c00	$1400
-branchTable	equ	$9000
+mulLookups	equ	$6000	$1400
+colMask	equ	$7400
+colByte	equ	$7500
+lineLo	equ	$7600
+lineHi	equ	$7700
+branchTable	equ	$7800
 
 ptr	equ	$80	2
 y	equ	$82
@@ -18,101 +18,59 @@ signs	equ	$86
 currentBranch	equ	$87
 pLimit	equ	$88
 
-	org	$9100
-dl	dta	$70,$70,$70,$4f,a(screen)
-:127	dta	$0f
-	dta	$4f,a(screen+$1000)
-:63	dta	$0f
-	dta	$41,a(dl)
-
-cls
-	lda:tay	#0
-	ldx	>screen
-cls_1
-	stx	cls_2+2
-cls_2
-	sta:rne	screen,y+
-	inx:cpx	>screen+$1800
-	bcc	cls_1
-	rts
-
-init2MulLookups
-	ldy	defs,x
-	lda	#0
-	jsr	initMulLookup
-	ldy	defs,x+
-	lda	defs,x
-initMulLookup
-	inx
-	stx	defsIndex
-	sty	step
-	ldy	#0
-	lsr	signs
-	scc:dey
-	sty	step+1
-	sta	(ptr),0
-	ldx	#0
-initMulLookup_1
-	txa
-	adc	step
-	tax
-	lda	step+1
-	adc	(ptr),y+
-	sta	(ptr),y
-	bne	initMulLookup_1
-	inc	ptr+1
-	ldx	defsIndex
-	rts
-
+	org	$7900
 main
-	sei:inc	^4e
-	jsr	cls
 	ldx	#0
+	ldy	#4
 	lda	#$80
-	ldy	#0
-init_1
-	sta	mask,x
-	tya:sta	col,x
-	add	>screen
-	sta	lineHi,x
-	txa
-:5	asl	@
-	sta	lineLo,x
-	lda	mask,x
+init_col_1
+	sta	colMask,x
+	pha
+	tya
+	sta	colByte,x
+	pla
 	lsr	@
-	bcc	init_2
+	bcc	init_col_2
 	ror	@
 	iny
-init_2
+init_col_2
 	inx
-	bne	init_1
-	
-	lda:rne	^4b
-	ldx	#29
-	sta:rpl	^00,x-
-	sta	ptr
-	sta	defsIndex
-	mva	#$21	^40
-	mwa	#dl	^42
-	mva	#$fe	^31
-	mwa	#next	$fffe
-next
-	mva	#0	^2e
-	mva	#$40	^2e
-	cli
+	bne	init_col_1
+	stx	defsIndex
 
-new
-	jsr	cls
+	mwa	#next	$208
+next
+	cli
+	lda	#12
+	jsr	screen_cio
+	mwa	#screen_device	$344+SCREEN_CHANNEL
+	mva	#8	$34b+SCREEN_CHANNEL
+	lda	#3
+	jsr	screen_cio
+
+	lda	$58
+	ldx	$59
+init_rows_1
+	sta	lineLo,y
+	pha
+	txa:sta	lineHi,y
+	pla
+	add	#40
+	scc:inx
+	iny
+	bne	init_rows_1
+; y=0
+
 	ldx	defsIndex
 	lda	defs,x
 	sne:ldx	#0
-	lda:rne	^4b
-	mva	defs,x+	^1a
-	sta	^18
-	mva	defs,x+	^17
+	mva	defs,x+	$2c8
+	sta	$2c6
+	mva	defs,x+	$2c5
+	mvy	#0	ptr
 	mva	>mulLookups	ptr+1
 	mva	#case_0-branch	currentBranch
-	ldy	#0
+
 new_1
 	mva	defs,x+	pLimit
 	lda	currentBranch
@@ -175,12 +133,11 @@ set
 	cpy #192
 	bcs error
 	eif
- 
+
+	mva	lineLo,y	ptr
 	mva	lineHi,y	ptr+1
-	lda	lineLo,y
-	eor	col,x
-	tay
-	lda	mask,x
+	ldy	colByte,x
+	lda	colMask,x
 	ora:sta	(ptr),y
 	ldy	y
 	clc:bcc	*
@@ -189,6 +146,42 @@ branch
 error
 	lsr:rne ^1a
 	eif
+
+init2MulLookups
+	ldy	defs,x
+	lda	#0
+	jsr	initMulLookup
+	ldy	defs,x+
+	lda	defs,x
+initMulLookup
+	inx
+	stx	defsIndex
+	sty	step
+	ldy	#0
+	lsr	signs
+	scc:dey
+	sty	step+1
+	sta	(ptr),0
+	ldx	#0
+initMulLookup_1
+	txa
+	adc	step
+	tax
+	lda	step+1
+	adc	(ptr),y+
+	sta	(ptr),y
+	bne	initMulLookup_1
+	inc	ptr+1
+	ldx	defsIndex
+	rts
+
+screen_cio
+	ldx	#SCREEN_CHANNEL
+	sta	$342,x
+	jmp	$e456
+
+screen_device
+	dta	c'S:',$9b
 
 defs
 ; crystal 4

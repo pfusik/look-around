@@ -1,5 +1,12 @@
-run: ifs.xex
+run: spring.xex
 	cygstart $<
 
-%.xex: %.asx
+spring.xex: ifs.asx
 	xasm -q -o $@ $<
+
+clean:
+	rm spring.xex
+
+.PHONY: run clean
+
+.DELETE_ON_ERROR:
