@@ -3,12 +3,13 @@
 TEST_OVERFLOW	equ	0
 SCREEN_CHANNEL	equ	$60
 
-mulLookups	equ	$6000	$1400
-colMask	equ	$7400
-colByte	equ	$7500
-lineLo	equ	$7600
-lineHi	equ	$7700
-branchTable	equ	$7800
+	org	start
+mulLookups	org	*+$1400
+colMask	org	*+$100
+colByte	org	*+$100
+lineLo	org	*+$100
+lineHi	org	*+$100
+branchTable	org	*+$100
 
 ptr	equ	$80	2
 y	equ	$82
@@ -18,7 +19,6 @@ signs	equ	$86
 currentBranch	equ	$87
 pLimit	equ	$88
 
-	org	$7900
 main
 	ldx	#0
 	ldy	#4
@@ -48,6 +48,7 @@ next
 	lda	#3
 	jsr	screen_cio
 
+	ldy	#0
 	lda	$58
 	ldx	$59
 init_rows_1
@@ -62,12 +63,12 @@ init_rows_1
 ; y=0
 
 	ldx	defsIndex
-	lda	defs,x
-	sne:ldx	#0
+	cpx	#DEFS_LEN
+	scc:ldx	#0
 	mva	defs,x+	$2c8
 	sta	$2c6
 	mva	defs,x+	$2c5
-	mvy	#0	ptr
+	sty	ptr
 	mva	>mulLookups	ptr+1
 	mva	#case_0-branch	currentBranch
 
@@ -85,6 +86,7 @@ new_2
 	jsr	init2MulLookups
 	ldy	pLimit
 	bne	new_1
+
 	lda	defs,x+
 	mvy	defs,x+	y
 	stx	defsIndex
@@ -131,7 +133,9 @@ set
 	ldy	y
 	ift	TEST_OVERFLOW
 	cpy #192
-	bcs error
+	bcc	no_overflow
+	lsr:rne ^1a
+no_overflow
 	eif
 
 	mva	lineLo,y	ptr
@@ -142,10 +146,6 @@ set
 	ldy	y
 	clc:bcc	*
 branch
-	ift	TEST_OVERFLOW
-error
-	lsr:rne ^1a
-	eif
 
 init2MulLookups
 	ldy	defs,x
@@ -259,7 +259,7 @@ defs
 	dta	128,128,64
 	dta	-128-1,128,127
 	dta	128,188
-
-	dta	0
+DEFS_LEN	equ	*-defs
 
 	run	main
+	end
