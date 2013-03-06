@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="ifs.js" type="text/javascript"></script>
+<style type="text/css">
+.modified { background-color: yellow; }
+</style>
+</head>
+<body onload="onLoad()">
+<canvas id="canvas" width="640" height="384" style="border: solid blue 1px"></canvas>
+frames=<input type="number" value="15" min="1" max="100" onchange="frames = parseInt(this.value); this.className = 'modified'; draw()" />
+<div id="div"></div>
+</body>
+</html>
