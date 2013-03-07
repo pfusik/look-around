@@ -1,6 +1,7 @@
 ; Iterated Function System
 
 TEST_OVERFLOW	equ	0
+HAVE_CLS	equ	1
 SCREEN_CHANNEL	equ	$60
 
 	org	start
@@ -39,14 +40,28 @@ init_col_2
 	stx	defsIndex
 
 	mwa	#next	$208
+
+ ift	HAVE_CLS
+	mwa	#screen_device	$344+SCREEN_CHANNEL
+	mwa	#$808	$34a+SCREEN_CHANNEL
+	ldx	#3
+	jsr	screen_cio
 next
 	cli
-	lda	#12
+	mwa	#0	$348+SCREEN_CHANNEL
+	lda	#$7d
+	ldx	#11
+	jsr	screen_cio
+ els
+next
+	cli
+	ldx	#12
 	jsr	screen_cio
 	mwa	#screen_device	$344+SCREEN_CHANNEL
 	mva	#8	$34b+SCREEN_CHANNEL
-	lda	#3
+	ldx	#3
 	jsr	screen_cio
+ eif
 
 	ldy	#0
 	lda	$58
@@ -176,8 +191,8 @@ initMulLookup_1
 	rts
 
 screen_cio
+	stx	$342+SCREEN_CHANNEL
 	ldx	#SCREEN_CHANNEL
-	sta	$342,x
 	jmp	$e456
 
 screen_device
