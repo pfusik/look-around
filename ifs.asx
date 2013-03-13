@@ -1,5 +1,6 @@
 ; Iterated Function System
 
+MSX	equ	1
 TEST_OVERFLOW	equ	0
 HAVE_CLS	equ	1
 SCREEN_CHANNEL	equ	$60
@@ -221,6 +222,18 @@ screen_device
 	dta	c'S:',$9b
 
 defs
+; Sierpinski triangle
+	dta	$94,$0a
+	dta	85,%0000
+	dta	128,0,64
+	dta	0,128,1
+	dta	85+85,%0000
+	dta	128,0,0
+	dta	0,128,96
+	dta	0,%0000
+	dta	128,0,127
+	dta	0,128,96
+	dta	128,96
 ; crystal 4
 	dta	$72,$0a
 	dta	25,%0000
