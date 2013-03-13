@@ -1,0 +1,148 @@
+melody_audc	equ	$8a	; 5
+
+	ift	SAP
+	opt	h-
+	dta	c'SAP',13,10
+	dta	c'AUTHOR "Lukasz Sychowicz (X-Ray)"',13,10
+	dta	c'NAME "Spring Comes"',13,10
+	dta	c'DATE "11/03/2013"',13,10
+	dta	c'TYPE B',13,10
+	dta	c'INIT 6000',13,10
+	dta	c'PLAYER 6001',13,10
+	dta	c'TIME 00:36.22 LOOP',13,10
+	opt	h+
+	org	f:$6000
+	rts
+	eif
+
+	dec	bass_delay
+	bne	no_bass
+	ldx	#$c1
+bass_audc	equ	*-1
+bass_next
+	dex
+	cpx	#$c1
+	bcs	no_beat
+	lda	msx_line
+:4	lsr	@
+	and	#7
+	tax
+	mvy	bass_freq,x	^26
+	lsr	@
+	tax
+	mva	melody_freq_los,x	melody_freq_lo
+	ldx	#$cb
+no_beat
+	lda	bass_delays-$c1,x
+	beq	bass_next
+	stx	^27
+	stx	bass_audc
+	sta	bass_delay
+no_bass
+
+	dec	note_delay
+	bne	no_note
+	mva	#14	note_delay
+	lda	#0
+msx_line	equ	*-1
+	inc	msx_line
+	and	#$17
+	tay
+	ldx	melody_notes,y
+	and	#7
+	tay
+	lda	melody_freq,x
+melody_freq_lo	equ	*-2
+	ldx	melody_channels,y
+	sta	^20,x
+	mva	#$a8+1	melody_audc,x
+	mva	#1	melody_delay,x
+no_note
+
+	ldx	#4
+melody_cont_1
+	dec	melody_delay,x
+	bne	melody_cont_2
+melody_next
+	dec:ldy	melody_audc,x
+	lda	melody_delays-$a0,y
+	beq	melody_next
+	sta	melody_delay,x
+	tya:sta	^21,x
+melody_cont_2
+	dex:dex
+	bpl	melody_cont_1
+
+	rts
+
+D_1	equ	0
+E_1	equ	2
+A_1	equ	7
+H_1	equ	9
+D_2	equ	12
+E_2	equ	14
+Fh2	equ	16
+G_2	equ	17
+
+melody_notes
+	dta	E_1
+	dta	H_1
+	dta	E_2
+	dta	E_1
+	dta	H_1
+	dta	E_2
+	dta	Fh2
+	dta	G_2
+
+melody_channels	dta	0,2,4,0,2,4,0,2
+
+; melody_notes continued
+	dta	D_1
+	dta	A_1
+	dta	D_2
+	dta	D_1
+	dta	A_1
+	dta	D_2
+	dta	Fh2
+	dta	E_2
+
+melody_freq
+	dta	$cb,$c0,$b5,$aa,$a1,$98,$8f,$87,$7f,$78,$72,$6b ; D#1
+	dta	$65,$5f,$5a,$55,$50,$4b,$47,$43,$3f,$3c,$38,$35 ; D#2
+
+melody_freq_los
+	dta	l(melody_freq,melody_freq,melody_freq+3,melody_freq+6)
+	ert	>melody_freq!=>[melody_freq+6]
+
+melody_delays
+	dta	255	; a0
+	dta	10	; a1
+	dta	10	; a2
+	dta	16	; a3
+	dta	4	; a4
+	dta	3	; a5
+	dta	1	; a6
+	dta	0
+	dta	1	; a8
+
+bass_freq	dta	$8f,$a1,$8f,$a1,$7a,$89,$65,$71
+bass_delays
+	dta	1	;c1
+	dta	48	;c2
+	dta	54	;c3
+	dta	3	;c4
+	dta	1	;c5
+	dta	0
+	dta	1	;c7
+	dta	1	;c8
+	dta	1	;c9
+	dta	1	;ca
+	dta	1	;cb
+
+melody_delay	dta	255
+note_delay	dta	1
+	dta	255	; melody_delay continued
+bass_delay	dta	1
+	dta	255	; melody_delay continued
+
+	end

@@ -20,6 +20,19 @@ signs	equ	$86
 currentBranch	equ	$87
 pLimit	equ	$88
 
+	ift	MSX
+vbl
+	jsr	player
+	lda	msx_line
+	and	#$1f
+	bne	no_next
+	lda	note_delay
+	cmp	#14
+	beq	next
+no_next
+	jmp	$e462	;xitvbv
+	eif
+
 main
 	ldx	#0
 	ldy	#4
@@ -39,7 +52,16 @@ init_col_2
 	bne	init_col_1
 	stx	defsIndex
 
+ ift	MSX
+	stx	^28
+	mva	#3	^2f
+	ldy	<vbl
+	ldx	>vbl
+	lda	#7
+	jsr	$e45c	;setvbv
+ els
 	mwa	#next	$208
+ eif
 
  ift	HAVE_CLS
 	mwa	#screen_device	$344+SCREEN_CHANNEL
@@ -54,7 +76,7 @@ next
 	jsr	screen_cio
  els
 next
-	cli
+:!MSX	cli
 	ldx	#12
 	jsr	screen_cio
 	mwa	#screen_device	$344+SCREEN_CHANNEL
@@ -275,6 +297,12 @@ defs
 	dta	-128-1,128,127
 	dta	128,188
 DEFS_LEN	equ	*-defs
+
+	ift	MSX
+SAP	equ	0
+player
+	icl	'msx.asx'
+	eif
 
 	run	main
 	end
