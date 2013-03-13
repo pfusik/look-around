@@ -223,6 +223,7 @@ screen_device
 
 defs
 ; Sierpinski triangle
+ ift 0
 	dta	$94,$0a
 	dta	85,%0000
 	dta	128,0,64
@@ -234,6 +235,7 @@ defs
 	dta	128,0,127
 	dta	0,128,96
 	dta	128,96
+ eif
 ; crystal 4
 	dta	$72,$0a
 	dta	25,%0000
@@ -254,13 +256,13 @@ defs
 	dta	51,%0000
 	dta	97,0,79
 	dta	0,97,3
-	dta	51+51,%0000
+	dta	51*2,%0000
 	dta	97,0,142
 	dta	0,97,48
-	dta	51+51+51,%0000
+	dta	51*3,%0000
 	dta	97,0,18
 	dta	0,97,48
-	dta	51+51+51+51,%0000
+	dta	51*4,%0000
 	dta	97,0,41
 	dta	0,97,119
 	dta	0,%0000
@@ -300,6 +302,27 @@ defs
 	dta	-163,0,223
 	dta	0,128,44
 	dta	63,74
+; Heighway dragon
+	dta	$38,$04
+	dta	128,%0010
+	dta	128,-128-1,168
+	dta	128,128,-12
+	dta	0,%0010
+	dta	128,-128-1,64
+	dta	128,128,-12
+	dta	128,96
+; tower
+	dta	$08,$00
+	dta	64,%0000
+	dta	192,0,6
+	dta	0,88,125
+	dta	64+64,%0000
+	dta	192,0,58
+	dta	0,88,125
+	dta	0,%0000
+	dta	128,0,64
+	dta	0,168,1
+	dta	128,125
 ; Levy Dragon
 	dta	$24,$08
 	dta	128,%0010
