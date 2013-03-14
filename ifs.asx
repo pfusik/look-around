@@ -171,9 +171,7 @@ set
 	ldy	y
 	ift	TEST_OVERFLOW
 	cpy #192
-	bcc	no_overflow
-	lsr:rne ^1a
-no_overflow
+	bcs	overflow
 	eif
 
 	mva	lineLo,y	ptr
@@ -182,8 +180,12 @@ no_overflow
 	lda	colMask,x
 	ora:sta	(ptr),y
 	ldy	y
-	clc:bcc	*
+	clc:bcc	case_4
 branch
+	ift	TEST_OVERFLOW
+overflow
+	dta	2
+	eif
 
 init2MulLookups
 	ldy	defs,x
