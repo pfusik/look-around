@@ -20,7 +20,7 @@ mpt-dump.txt: pasmo.mpt
 	asapscan -d $< | (read; head -2000) | cut -c 9- >$@
 
 clean:
-	rm lookarou.xex lookar16.xex Look_Around.sap
+	rm lookarou.xex lookar16.xex Look_Around.sap msx-dump.txt mpt-dump.txt
 
 .PHONY: run check-msx clean
 
