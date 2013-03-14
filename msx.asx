@@ -9,7 +9,7 @@ melody_audc	equ	$8a	; 5
 	dta	c'TYPE B',13,10
 	dta	c'INIT 6000',13,10
 	dta	c'PLAYER 6001',13,10
-	dta	c'TIME 00:36.22 LOOP',13,10
+	dta	c'TIME 00:35.94 LOOP',13,10
 	opt	h+
 	org	f:$6000
 	rts
