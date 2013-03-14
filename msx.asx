@@ -1,4 +1,7 @@
-melody_audc	equ	$8a	; 5
+VIBRATE	equ	0
+
+melody_audf	equ	$8a	; .. $8e
+melody_audc	equ	$8b	; .. $8f
 
 	ift	SAP
 	opt	h-
@@ -14,7 +17,9 @@ melody_audc	equ	$8a	; 5
 	org	f:$6000
 	rts
 	eif
-
+ ift	VIBRATE
+	inc	time
+ eif
 	dec	bass_delay
 	bne	no_bass
 	ldx	#$c1
@@ -54,13 +59,43 @@ msx_line	equ	*-1
 	lda	melody_freq,x
 melody_freq_lo	equ	*-2
 	ldx	melody_channels,y
+ ift	VIBRATE
+	sta	melody_audf,x
+ els
 	sta	^20,x
+ eif
 	mva	#$a8+1	melody_audc,x
 	mva	#1	melody_delay,x
 no_note
 
 	ldx	#4
 melody_cont_1
+ ift	VIBRATE
+	ldy	melody_audc,x
+	dec	melody_delay,x
+	bne	melody_cont_2
+melody_next
+	dey:sty	melody_audc,x
+	lda	melody_delays-$a0,y
+	beq	melody_next
+	sta	melody_delay,x
+	tya:sta	^21,x
+melody_cont_2
+	lda	#0
+	cpy	#$a4
+	bcs	melody_setFreq
+	lda	#2
+	and	#1
+time	equ	*-1
+	beq	melody_setFreq
+	asl	@
+	and	time
+	seq:lda	#VIBRATE^-VIBRATE
+	eor	#VIBRATE
+melody_setFreq
+	add	melody_audf,x
+	sta	^20,x
+ els
 	dec	melody_delay,x
 	bne	melody_cont_2
 melody_next
@@ -70,6 +105,7 @@ melody_next
 	sta	melody_delay,x
 	tya:sta	^21,x
 melody_cont_2
+ eif
 	dex:dex
 	bpl	melody_cont_1
 
