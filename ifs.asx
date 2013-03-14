@@ -21,7 +21,7 @@ signs	equ	$86
 currentBranch	equ	$87
 pLimit	equ	$88
 
-	ift	MSX
+ ift	MSX
 vbl
 	jsr	player
 	lda	msx_line
@@ -32,7 +32,7 @@ vbl
 	beq	next
 no_next
 	jmp	$e462	;xitvbv
-	eif
+ eif
 
 main
 	ldx	#0
@@ -169,10 +169,10 @@ set
 	ldy	^2a
 	mva	branchTable,y	branch-1
 	ldy	y
-	ift	TEST_OVERFLOW
+ ift	TEST_OVERFLOW
 	cpy #192
 	bcs	overflow
-	eif
+ eif
 
 	mva	lineLo,y	ptr
 	mva	lineHi,y	ptr+1
@@ -182,10 +182,10 @@ set
 	ldy	y
 	clc:bcc	case_4
 branch
-	ift	TEST_OVERFLOW
+ ift	TEST_OVERFLOW
 overflow
 	dta	2
-	eif
+ eif
 
 init2MulLookups
 	ldy	defs,x
@@ -256,7 +256,7 @@ defs
 ; Sierpinski Pentagon
 	dta	$44,$0c
 	dta	51,%0000
-	dta	97,0,79
+	dta	97,0,80
 	dta	0,97,3
 	dta	51*2,%0000
 	dta	97,0,142
@@ -314,7 +314,7 @@ defs
 	dta	128,128,-12
 	dta	128,96
 ; tower
-	dta	$08,$00
+	dta	$00,$0a
 	dta	64,%0000
 	dta	192,0,6
 	dta	0,88,125
@@ -336,11 +336,11 @@ defs
 	dta	128,188
 DEFS_LEN	equ	*-defs
 
-	ift	MSX
+ ift	MSX
 SAP	equ	0
 player
 	icl	'msx.asx'
-	eif
+ eif
 
 	run	main
 	end

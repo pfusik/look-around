@@ -1,9 +1,9 @@
-In 2013
-at Forever Party
-the Taquart group announces:
-"Spring Comes"
+In March 2013
+at the Forever Party
+Taquart presents:
+"Look Around"
 
-1 kilobyte intro for Atari 8-bit
+One kilobyte intro for Atari 8-bit
 400/800/XL/XE PAL/NTSC compatible
 
 Programmed by
@@ -29,4 +29,5 @@ Bob!k, Cosi
 
 Coming soon to pouet.net.
 Video coming soon to YouTube.
+Soundtrack coming soon to ASMA.
 Source code coming soon to GitHub.

@@ -4,7 +4,7 @@ melody_audc	equ	$8a	; 5
 	opt	h-
 	dta	c'SAP',13,10
 	dta	c'AUTHOR "Lukasz Sychowicz (X-Ray)"',13,10
-	dta	c'NAME "Spring Comes"',13,10
+	dta	c'NAME "Look Around"',13,10
 	dta	c'DATE "11/03/2013"',13,10
 	dta	c'TYPE B',13,10
 	dta	c'INIT 6000',13,10

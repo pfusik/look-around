@@ -1,17 +1,17 @@
-run: spring.xex spring16.xex Spring_Comes.sap
+run: lookarou.xex lookar16.xex Look_Around.sap
 	cygstart $<
 
-spring.xex: ifs.asx msx.asx
+lookarou.xex: ifs.asx msx.asx
 	xasm -q -d start=\$$6000 -o $@ $<
 
-spring16.xex: ifs.asx msx.asx
+lookar16.xex: ifs.asx msx.asx
 	xasm -q -d start=\$$400 -o $@ $<
 
-Spring_Comes.sap: msx.asx
+Look_Around.sap: msx.asx
 	xasm -q -d SAP=1 -o $@ $<
 
 clean:
-	rm spring.xex spring16.xex Spring_Comes.sap
+	rm lookarou.xex lookar16.xex Look_Around.sap
 
 .PHONY: run clean
 
