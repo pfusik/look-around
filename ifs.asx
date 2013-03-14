@@ -15,7 +15,6 @@ branchTable	org	*+$100
 
 ptr	equ	$80	2
 y	equ	$82
-defsIndex	equ	$83
 step	equ	$84	2
 signs	equ	$86
 currentBranch	equ	$87
@@ -51,7 +50,6 @@ init_col_1
 init_col_2
 	inx
 	bne	init_col_1
-	stx	defsIndex
 
  ift	MSX
 	stx	^28
@@ -100,18 +98,21 @@ init_rows_1
 	bne	init_rows_1
 ; y=0
 
-	ldx	defsIndex
-	cpx	#DEFS_LEN
-	scc:ldx	#0
-	mva	defs,x+	$2c8
+	lda	getDef+1
+	cmp	<defsEnd
+	sne:mwa	#defs	getDef+1
+	jsr	getDef
+	sta	$2c8
 	sta	$2c6
-	mva	defs,x+	$2c5
+	jsr	getDef
+	sta	$2c5
 	sty	ptr
 	mva	>mulLookups	ptr+1
 	mva	#case_0-branch	currentBranch
 
 new_1
-	mva	defs,x+	pLimit
+	jsr	getDef
+	sta	pLimit
 	lda	currentBranch
 new_2
 	sta	branchTable,y+
@@ -119,16 +120,18 @@ new_2
 	bne	new_2
 	sbc	#case_0-case_1	+
 	sta	currentBranch
-	mva	defs,x+	signs
+	jsr	getDef
+	sta	signs
 	jsr	init2MulLookups
 	jsr	init2MulLookups
 	ldy	pLimit
 	bne	new_1
 
-	lda	defs,x+
-	mvy	defs,x+	y
-	stx	defsIndex
-	jmp	set
+	jsr	getDef
+	tax
+	jsr	getDef
+	sta	y
+	jmp	set_1
 
 case_4
 	lda	mulLookups+$1200,x
@@ -166,6 +169,7 @@ case_0
 	add	mulLookups+$100,y
 set
 	tax
+set_1
 	ldy	^2a
 	mva	branchTable,y	branch-1
 	ldy	y
@@ -188,14 +192,14 @@ overflow
  eif
 
 init2MulLookups
-	ldy	defs,x
+	jsr	getDef
+	tay
 	lda	#0
 	jsr	initMulLookup
-	ldy	defs,x+
-	lda	defs,x
+	jsr	getDef
+	tay
+	jsr	getDef
 initMulLookup
-	inx
-	stx	defsIndex
 	sty	step
 	ldy	#0
 	lsr	signs
@@ -212,7 +216,11 @@ initMulLookup_1
 	sta	(ptr),y
 	bne	initMulLookup_1
 	inc	ptr+1
-	ldx	defsIndex
+	rts
+
+getDef
+	lda	defs
+	inw	getDef+1
 	rts
 
 screen_cio
@@ -224,20 +232,6 @@ screen_device
 	dta	c'S:',$9b
 
 defs
-; Sierpinski triangle
- ift 0
-	dta	$94,$0a
-	dta	85,%0000
-	dta	128,0,64
-	dta	0,128,1
-	dta	85+85,%0000
-	dta	128,0,0
-	dta	0,128,96
-	dta	0,%0000
-	dta	128,0,127
-	dta	0,128,96
-	dta	128,96
- eif
 ; crystal 4
 	dta	$72,$0a
 	dta	25,%0000
@@ -253,6 +247,18 @@ defs
 	dta	94,164,14
 	dta	-164,94,156
 	dta	135,6
+; tower
+	dta	$00,$0a
+	dta	64,%0000
+	dta	192,0,6
+	dta	0,88,125
+	dta	64+64,%0000
+	dta	192,0,58
+	dta	0,88,125
+	dta	0,%0000
+	dta	128,0,64
+	dta	0,168,1
+	dta	128,125
 ; Sierpinski Pentagon
 	dta	$44,$0c
 	dta	51,%0000
@@ -286,6 +292,15 @@ defs
 	dta	14,-19,45
 	dta	-19,26,170
 	dta	114,47 ; invariant point x,y
+; Heighway dragon
+	dta	$38,$04
+	dta	128,%0010
+	dta	128,-128,168
+	dta	128,128,-12
+	dta	0,%0010
+	dta	128,-128,64
+	dta	128,128,-12
+	dta	128,96
 ; Tree
 	dta	$e8,$04
 	dta	76,%0100
@@ -304,27 +319,6 @@ defs
 	dta	-163,0,223
 	dta	0,128,44
 	dta	63,74
-; Heighway dragon
-	dta	$38,$04
-	dta	128,%0010
-	dta	128,-128,168
-	dta	128,128,-12
-	dta	0,%0010
-	dta	128,-128,64
-	dta	128,128,-12
-	dta	128,96
-; tower
-	dta	$00,$0a
-	dta	64,%0000
-	dta	192,0,6
-	dta	0,88,125
-	dta	64+64,%0000
-	dta	192,0,58
-	dta	0,88,125
-	dta	0,%0000
-	dta	128,0,64
-	dta	0,168,1
-	dta	128,125
 ; Levy Dragon
 	dta	$24,$08
 	dta	128,%0010
@@ -334,7 +328,19 @@ defs
 	dta	128,128,64
 	dta	-128,128,127
 	dta	128,188
-DEFS_LEN	equ	*-defs
+; Sierpinski triangle
+	dta	$94,$0a
+	dta	85,%0000
+	dta	128,0,64
+	dta	0,128,1
+	dta	85+85,%0000
+	dta	128,0,0
+	dta	0,128,96
+	dta	0,%0000
+	dta	128,0,127
+	dta	0,128,96
+	dta	128,96
+defsEnd
 
  ift	MSX
 SAP	equ	0
