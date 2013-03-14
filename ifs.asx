@@ -203,7 +203,7 @@ initMulLookup
 	ldx	#0
 initMulLookup_1
 	txa
-	adc	step
+	add	step
 	tax
 	lda	step+1
 	adc	(ptr),y+
@@ -249,7 +249,7 @@ defs
 	dta	0,65,125
 	dta	0,%0100
 	dta	94,164,14
-	dta	-164-1,94,156
+	dta	-164,94,156
 	dta	135,6
 ; Sierpinski Pentagon
 	dta	$44,$0c
@@ -272,17 +272,17 @@ defs
 ; Barnsley Fern
 	dta	$b2,$0c
 	dta	186,%0010	; p, %dcba signs
-	dta	217,-9-1,40	; a,b,e
-	dta	9,217,-5-1	; c,d,f
+	dta	217,-9,40	; a,b,e
+	dta	9,217,-5	; c,d,f
 	dta	186+33,%0100
 	dta	50,57,6
-	dta	-57-1,50,129
+	dta	-57,50,129
 	dta	186+33+33,%1110
-	dta	63,-70-1,85
-	dta	-64-1,-40-1,215
+	dta	63,-70,85
+	dta	-64,-40,215
 	dta	0,%0110
-	dta	14,-19-1,45
-	dta	-19-1,26,170
+	dta	14,-19,45
+	dta	-19,26,170
 	dta	114,47 ; invariant point x,y
 ; Tree
 	dta	$e8,$04
@@ -305,10 +305,10 @@ defs
 ; Heighway dragon
 	dta	$38,$04
 	dta	128,%0010
-	dta	128,-128-1,168
+	dta	128,-128,168
 	dta	128,128,-12
 	dta	0,%0010
-	dta	128,-128-1,64
+	dta	128,-128,64
 	dta	128,128,-12
 	dta	128,96
 ; tower
@@ -326,11 +326,11 @@ defs
 ; Levy Dragon
 	dta	$24,$08
 	dta	128,%0010
-	dta	128,-128-1,64
+	dta	128,-128,64
 	dta	128,128,0
 	dta	0,%0100
 	dta	128,128,64
-	dta	-128-1,128,127
+	dta	-128,128,127
 	dta	128,188
 DEFS_LEN	equ	*-defs
 
