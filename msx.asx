@@ -11,10 +11,23 @@ melody_audc	equ	$8b	; .. $8f
 	dta	c'DATE "11/03/2013"',13,10
 	dta	c'TYPE B',13,10
 	dta	c'INIT 6000',13,10
-	dta	c'PLAYER 6001',13,10
+	dta	c'PLAYER 6019',13,10
 	dta	c'TIME 00:35.94 LOOP',13,10
 	opt	h+
 	org	f:$6000
+	ldx	#4
+init_delays
+	txa
+	and	#1
+	sne:lda	#255
+	sta	melody_delay,x
+	dex
+	bpl	init_delays
+	inx:stx	msx_line
+ ift	VIBRATE
+	inx:stx	time
+ eif
+	mvx	#$c1	bass_audc
 	rts
 	eif
  ift	VIBRATE
@@ -175,10 +188,16 @@ bass_delays
 	dta	1	;ca
 	dta	1	;cb
 
+	ift	SAP
+melody_delay	org	*+1
+note_delay	org	*+2
+bass_delay	org	*+2
+	els
 melody_delay	dta	255
 note_delay	dta	1
 	dta	255	; melody_delay continued
 bass_delay	dta	1
 	dta	255	; melody_delay continued
+	eif
 
 	end
