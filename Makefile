@@ -1,5 +1,5 @@
 run: lookarou.xex lookar16.xex Look_Around.sap
-	cygstart $<
+	start $<
 
 lookarou.xex: ifs.asx msx.asx
 	xasm -q -d start=\$$6000 -o $@ $<
