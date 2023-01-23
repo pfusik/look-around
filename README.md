@@ -33,5 +33,5 @@ Music ProTracker.
 Links
 -----
 
-* [Download](http://pfusik.github.com/look-around/look-around.zip)
+* [Download](https://pfusik.github.io/look-around/look-around.zip)
 * [Comment and vote](http://pouet.net/prod.php?which=61143)
